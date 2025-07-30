@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Угадай число</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				max-width: 400px;
+				margin: 40px auto;
+				padding: 20px;
+				background: #f0f0f0;
+				text-align: center;
+				border-radius: 10px;
+			}
+			input[type='number'] {
+				padding: 10px;
+				width: 60%;
+				font-size: 18px;
+				border-radius: 5px;
+				border: 1px solid #ccc;
+			}
+			button {
+				padding: 10px 20px;
+				margin-top: 10px;
+				font-size: 18px;
+				margin-left: 10px;
+				cursor: pointer;
+				border-radius: 5px;
+				border: none;
+				background-color: #4caf50;
+				color: white;
+			}
+			button:hover {
+				background-color: #45a049;
+			}
+			#result {
+				margin-top: 20px;
+				font-size: 20px;
+			}
+			#attempts {
+				margin-top: 10px;
+				color: #555;
+			}
+			#continueBtn {
+				margin-top: 20px;
+				display: none;
+				background-color: #2196f3;
+			}
+			#continueBtn:hover {
+				background-color: #0b7dda;
+			}
+		</style>
+	</head>
+	<body>
+		<h2>Угадай число от 1 до 100</h2>
+		<input
+			id="guessInput"
+			type="number"
+			min="1"
+			max="100"
+			placeholder="Введите число"
+		/>
+		<button onclick="checkGuess()">Угадать</button>
+
+		<div id="result"></div>
+		<div id="attempts"></div>
+		<button
+			onclick="restartGame()"
+			style="margin-top: 20px; display: none"
+			id="restartBtn"
+		>
+			Начать заново
+		</button>
+		<button id="continueBtn" onclick="goNextPage()">Продолжить</button>
+
+		<script>
+			let secretNumber = Math.floor(Math.random() * 100) + 1
+			let attempts = 0
+			const guessInput = document.getElementById('guessInput')
+			const result = document.getElementById('result')
+			const attemptsDiv = document.getElementById('attempts')
+			const restartBtn = document.getElementById('restartBtn')
+			const continueBtn = document.getElementById('continueBtn')
+
+			function checkGuess() {
+				const guess = Number(guessInput.value)
+				if (!guess || guess < 1 || guess > 100) {
+					result.textContent = 'Введите число от 1 до 100!'
+					result.style.color = 'red'
+					return
+				}
+				attempts++
+				if (guess === secretNumber) {
+					result.textContent = `Поздравляем! Вы угадали число ${secretNumber} за ${attempts} попыток.`
+					result.style.color = 'green'
+					guessInput.disabled = true
+					restartBtn.style.display = 'inline-block'
+					continueBtn.style.display = 'inline-block'
+				} else if (guess < secretNumber) {
+					result.textContent = 'Загаданное число больше.'
+					result.style.color = 'black'
+				} else {
+					result.textContent = 'Загаданное число меньше.'
+					result.style.color = 'black'
+				}
+				attemptsDiv.textContent = `Попыток: ${attempts}`
+				guessInput.value = ''
+				guessInput.focus()
+			}
+
+			function restartGame() {
+				secretNumber = Math.floor(Math.random() * 100) + 1
+				attempts = 0
+				result.textContent = ''
+				attemptsDiv.textContent = ''
+				guessInput.disabled = false
+				guessInput.value = ''
+				guessInput.focus()
+				restartBtn.style.display = 'none'
+				continueBtn.style.display = 'none'
+			}
+
+			function goNextPage() {
+				// Здесь укажи нужный URL страницы для перехода
+				window.location.href = 'tetris.html'
+			}
+		</script>
+	</body>
+</html>

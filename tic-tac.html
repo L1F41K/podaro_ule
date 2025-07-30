@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Крестики-нолики</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background: #222;
+				color: #eee;
+				text-align: center;
+				margin: 0;
+				padding: 20px;
+			}
+			h1 {
+				margin-bottom: 10px;
+			}
+			#mode-select {
+				margin-bottom: 20px;
+			}
+			button {
+				background: #2196f3;
+				border: none;
+				color: white;
+				padding: 10px 20px;
+				margin: 0 10px 20px 10px;
+				font-size: 16px;
+				border-radius: 5px;
+				cursor: pointer;
+			}
+			button:hover {
+				background: #0b7dda;
+			}
+			#board {
+				display: grid;
+				grid-template-columns: repeat(3, 80px);
+				grid-template-rows: repeat(3, 80px);
+				gap: 10px;
+				justify-content: center;
+				margin: 0 auto 20px auto;
+			}
+			.cell {
+				background: #333;
+				border-radius: 8px;
+				font-size: 48px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				cursor: pointer;
+				user-select: none;
+				transition: background-color 0.3s;
+			}
+			.cell:hover {
+				background-color: #444;
+			}
+			#status {
+				font-size: 20px;
+				margin-bottom: 20px;
+			}
+			#restart {
+				background: #4caf50;
+			}
+			#restart:hover {
+				background: #388e3c;
+			}
+			#continue {
+				background: #ff9800;
+			}
+			#continue:hover {
+				background: #e68900;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Крестики-нолики</h1>
+
+		<div id="mode-select">
+			<button id="btn-friend">Игра с другом</button>
+			<button id="btn-bot">Игра против бота</button>
+		</div>
+
+		<div id="status">Выберите режим игры</div>
+
+		<div id="board"></div>
+
+		<button id="restart" style="display: none">Начать заново</button>
+		<button id="continue" style="display: none">Продолжить</button>
+
+		<script>
+			const boardElement = document.getElementById('board')
+			const statusElement = document.getElementById('status')
+			const restartBtn = document.getElementById('restart')
+			const continueBtn = document.getElementById('continue')
+			const btnFriend = document.getElementById('btn-friend')
+			const btnBot = document.getElementById('btn-bot')
+
+			let board = ['', '', '', '', '', '', '', '', ''] // 3x3 поле
+			let currentPlayer = 'X'
+			let gameActive = false
+			let vsBot = false
+			let userPlayer = 'X' // символ пользователя, если против бота
+			let botPlayer = 'O' // символ бота
+
+			const winningConditions = [
+				[0, 1, 2],
+				[3, 4, 5],
+				[6, 7, 8],
+				[0, 3, 6],
+				[1, 4, 7],
+				[2, 5, 8],
+				[0, 4, 8],
+				[2, 4, 6],
+			]
+
+			function createBoard() {
+				boardElement.innerHTML = ''
+				for (let i = 0; i < 9; i++) {
+					const cell = document.createElement('div')
+					cell.classList.add('cell')
+					cell.dataset.index = i
+					cell.addEventListener('click', onCellClick)
+					boardElement.appendChild(cell)
+				}
+			}
+
+			function onCellClick(e) {
+				const index = e.target.dataset.index
+				if (!gameActive || board[index] !== '') return
+
+				if (vsBot && currentPlayer !== userPlayer) return // Ждём ход бота
+
+				makeMove(index, currentPlayer)
+
+				if (checkWin(currentPlayer)) {
+					endGame(`${currentPlayer} выиграл!`)
+					return
+				}
+
+				if (isDraw()) {
+					endGame('Ничья!')
+					return
+				}
+
+				switchPlayer()
+
+				if (vsBot && currentPlayer === botPlayer && gameActive) {
+					setTimeout(botMove, 400)
+				}
+			}
+
+			function makeMove(index, player) {
+				board[index] = player
+				const cell = boardElement.querySelector(`[data-index='${index}']`)
+				cell.textContent = player
+			}
+
+			function switchPlayer() {
+				currentPlayer = currentPlayer === 'X' ? 'O' : 'X'
+				statusElement.textContent =
+					`Ход игрока: ${currentPlayer}` +
+					(vsBot ? (currentPlayer === userPlayer ? ' (Вы)' : ' (Бот)') : '')
+			}
+
+			function checkWin(player) {
+				return winningConditions.some(condition => {
+					return condition.every(i => board[i] === player)
+				})
+			}
+
+			function isDraw() {
+				return board.every(cell => cell !== '')
+			}
+
+			function endGame(message) {
+				gameActive = false
+				statusElement.textContent = message
+				restartBtn.style.display = 'inline-block'
+				continueBtn.style.display = 'inline-block'
+			}
+
+			function botMove() {
+				// Простой бот — ход случайным свободным ходом
+				let available = []
+				board.forEach((cell, i) => {
+					if (cell === '') available.push(i)
+				})
+
+				if (available.length === 0) return
+
+				const moveIndex =
+					available[Math.floor(Math.random() * available.length)]
+				makeMove(moveIndex, botPlayer)
+
+				if (checkWin(botPlayer)) {
+					endGame(`${botPlayer} выиграл!`)
+					return
+				}
+
+				if (isDraw()) {
+					endGame('Ничья!')
+					return
+				}
+
+				switchPlayer()
+			}
+
+			function startGame(botMode) {
+				vsBot = botMode
+				board = ['', '', '', '', '', '', '', '', '']
+
+				if (vsBot) {
+					// рандомно определяем, кто будет X, кто O
+					if (Math.random() < 0.5) {
+						userPlayer = 'X'
+						botPlayer = 'O'
+					} else {
+						userPlayer = 'O'
+						botPlayer = 'X'
+					}
+					currentPlayer = 'X' // ход всегда начинается с X
+					statusElement.textContent =
+						`Ход игрока: ${currentPlayer}` +
+						(currentPlayer === userPlayer ? ' (Вы)' : ' (Бот)')
+				} else {
+					// игра с другом
+					userPlayer = 'X'
+					botPlayer = 'O'
+					currentPlayer = 'X'
+					statusElement.textContent = `Ход игрока: ${currentPlayer}`
+				}
+
+				gameActive = true
+				restartBtn.style.display = 'none'
+				continueBtn.style.display = 'none'
+				createBoard()
+
+				// Если бот ходит первым — запускаем ход бота
+				if (vsBot && currentPlayer === botPlayer) {
+					setTimeout(botMove, 400)
+				}
+			}
+
+			restartBtn.addEventListener('click', () => {
+				startGame(vsBot)
+			})
+
+			continueBtn.addEventListener('click', () => {
+				window.location.href = 'memory.html' // поменяй на нужный URL
+			})
+
+			btnFriend.addEventListener('click', () => {
+				startGame(false)
+			})
+
+			btnBot.addEventListener('click', () => {
+				startGame(true)
+			})
+
+			createBoard()
+		</script>
+	</body>
+</html>

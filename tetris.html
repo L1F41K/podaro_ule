@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Мини-Тетрис</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				text-align: center;
+				background: #222;
+				color: #eee;
+				margin: 0;
+				padding: 20px;
+			}
+			#tetris {
+				margin: 20px auto;
+				background: #111;
+				border: 4px solid #555;
+				display: block;
+				image-rendering: pixelated;
+			}
+			#score {
+				font-size: 18px;
+				margin-top: 10px;
+			}
+			button#continueBtn {
+				display: none;
+				padding: 10px 20px;
+				font-size: 18px;
+				margin-top: 20px;
+				cursor: pointer;
+				border-radius: 5px;
+				border: none;
+				background-color: #2196f3;
+				color: white;
+			}
+
+			button#continueBtn:hover {
+				background-color: #0b7dda;
+			}
+
+			.mobile-controls {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				gap: 10px;
+				margin-top: 20px;
+			}
+			#restartBtn {
+				display: none;
+				padding: 10px 20px;
+				font-size: 18px;
+				margin-top: 20px;
+				margin-left: 10px;
+				cursor: pointer;
+				border-radius: 5px;
+				border: none;
+				background-color: #4caf50;
+				color: white;
+			}
+
+			#restartBtn:hover {
+				background-color: #388e3c;
+			}
+
+			.mobile-controls button {
+				font-size: 24px;
+				padding: 15px 20px;
+				border-radius: 10px;
+				border: none;
+				background-color: #555;
+				color: white;
+				width: 60px;
+				height: 60px;
+				box-shadow: 0 0 5px #000;
+				cursor: pointer;
+				transition: background 0.2s;
+			}
+
+			.mobile-controls button:active {
+				background-color: #777;
+			}
+		</style>
+	</head>
+	<body>
+		<h2>Мини-Тетрис</h2>
+		<canvas id="tetris" width="240" height="400"></canvas>
+		<!-- Джойстик для мобильных -->
+		<div class="mobile-controls">
+			<button onclick="playerMove(-1)">⬅</button>
+			<button onclick="playerRotate(1)">⬆</button>
+			<button onclick="playerMove(1)">⮕</button>
+			<button onclick="playerDrop()">⬇</button>
+		</div>
+		<div id="score">Очки: 0</div>
+		<button id="continueBtn" onclick="goNextPage()">Продолжить</button>
+		<button id="restartBtn" onclick="restartGame()">Начать заново</button>
+
+		<script>
+			const canvas = document.getElementById('tetris')
+			const ctx = canvas.getContext('2d')
+			const scale = 20 // размер квадрата
+			const cols = 12
+			const rows = 20
+			canvas.width = cols * scale
+			canvas.height = rows * scale
+
+			// Цвета фигур
+			const colors = [
+				null,
+				'#FF0D72', // Т
+				'#0DC2FF', // I
+				'#0DFF72', // S
+				'#F538FF', // Z
+				'#FF8E0D', // L
+				'#FFE138', // J
+				'#3877FF', // O
+			]
+
+			// Фигуры (матрицы)
+			const pieces = {
+				T: [
+					[0, 1, 0],
+					[1, 1, 1],
+					[0, 0, 0],
+				],
+				I: [
+					[0, 0, 0, 0],
+					[2, 2, 2, 2],
+					[0, 0, 0, 0],
+					[0, 0, 0, 0],
+				],
+				S: [
+					[0, 3, 3],
+					[3, 3, 0],
+					[0, 0, 0],
+				],
+				Z: [
+					[4, 4, 0],
+					[0, 4, 4],
+					[0, 0, 0],
+				],
+				L: [
+					[0, 0, 5],
+					[5, 5, 5],
+					[0, 0, 0],
+				],
+				J: [
+					[6, 0, 0],
+					[6, 6, 6],
+					[0, 0, 0],
+				],
+				O: [
+					[7, 7],
+					[7, 7],
+				],
+			}
+
+			function createMatrix(w, h) {
+				const matrix = []
+				while (h--) {
+					matrix.push(new Array(w).fill(0))
+				}
+				return matrix
+			}
+
+			// Игровое поле
+			const arena = createMatrix(cols, rows)
+
+			// Игрок (фигура)
+			const player = {
+				pos: { x: 0, y: 0 },
+				matrix: null,
+				score: 0,
+			}
+
+			function drawMatrix(matrix, offset) {
+				matrix.forEach((row, y) => {
+					row.forEach((value, x) => {
+						if (value !== 0) {
+							ctx.fillStyle = colors[value]
+							ctx.fillRect(
+								(x + offset.x) * scale,
+								(y + offset.y) * scale,
+								scale - 1,
+								scale - 1
+							)
+						}
+					})
+				})
+			}
+
+			function collide(arena, player) {
+				const m = player.matrix
+				const o = player.pos
+				for (let y = 0; y < m.length; ++y) {
+					for (let x = 0; x < m[y].length; ++x) {
+						if (
+							m[y][x] !== 0 &&
+							(arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0
+						) {
+							return true
+						}
+					}
+				}
+				return false
+			}
+
+			function merge(arena, player) {
+				player.matrix.forEach((row, y) => {
+					row.forEach((value, x) => {
+						if (value !== 0) {
+							arena[y + player.pos.y][x + player.pos.x] = value
+						}
+					})
+				})
+			}
+
+			function rotate(matrix, dir) {
+				for (let y = 0; y < matrix.length; ++y) {
+					for (let x = 0; x < y; ++x) {
+						;[matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]]
+					}
+				}
+				if (dir > 0) {
+					matrix.forEach(row => row.reverse())
+				} else {
+					matrix.reverse()
+				}
+			}
+
+			function playerReset() {
+				const piecesKeys = Object.keys(pieces)
+				player.matrix =
+					pieces[piecesKeys[(piecesKeys.length * Math.random()) | 0]]
+				player.pos.y = 0
+				player.pos.x = ((cols / 2) | 0) - ((player.matrix[0].length / 2) | 0)
+
+				if (collide(arena, player)) {
+					// Конец игры
+					gameOver()
+				}
+			}
+
+			function arenaSweep() {
+				let rowCount = 1
+				outer: for (let y = arena.length - 1; y >= 0; --y) {
+					for (let x = 0; x < arena[y].length; ++x) {
+						if (arena[y][x] === 0) {
+							continue outer
+						}
+					}
+					// Удаляем строку
+					const row = arena.splice(y, 1)[0].fill(0)
+					arena.unshift(row)
+					player.score += rowCount * 10
+					rowCount *= 2
+					y++
+				}
+			}
+
+			function draw() {
+				ctx.fillStyle = '#111'
+				ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+				drawMatrix(arena, { x: 0, y: 0 })
+				drawMatrix(player.matrix, player.pos)
+			}
+
+			let dropCounter = 0
+			let dropInterval = 800
+
+			let lastTime = 0
+
+			function update(time = 0) {
+				const deltaTime = time - lastTime
+				lastTime = time
+
+				dropCounter += deltaTime
+				if (dropCounter > dropInterval) {
+					playerDrop()
+				}
+				draw()
+				if (!gameEnded) {
+					requestAnimationFrame(update)
+				}
+			}
+
+			function playerDrop() {
+				player.pos.y++
+				if (collide(arena, player)) {
+					player.pos.y--
+					merge(arena, player)
+					arenaSweep()
+					updateScore()
+					playerReset()
+				}
+				dropCounter = 0
+			}
+
+			function playerMove(dir) {
+				player.pos.x += dir
+				if (collide(arena, player)) {
+					player.pos.x -= dir
+				}
+			}
+
+			function playerRotate(dir) {
+				const pos = player.pos.x
+				let offset = 1
+				rotate(player.matrix, dir)
+				while (collide(arena, player)) {
+					player.pos.x += offset
+					offset = -(offset + (offset > 0 ? 1 : -1))
+					if (offset > player.matrix[0].length) {
+						rotate(player.matrix, -dir)
+						player.pos.x = pos
+						return
+					}
+				}
+			}
+
+			function updateScore() {
+				document.getElementById('score').innerText = `Очки: ${player.score}`
+			}
+
+			// Кнопка "Продолжить"
+			const continueBtn = document.getElementById('continueBtn')
+
+			function gameOver() {
+				gameEnded = true
+				document.getElementById('continueBtn').style.display = 'inline-block'
+				document.getElementById('restartBtn').style.display = 'inline-block'
+				alert('Игра окончена!')
+			}
+
+			function goNextPage() {
+				window.location.href = 'tic-tac.html' // сюда впиши нужный URL
+			}
+			function restartGame() {
+				// Очистить арену
+				for (let y = 0; y < arena.length; y++) {
+					arena[y].fill(0)
+				}
+				player.score = 0
+				updateScore()
+				gameEnded = false
+				document.getElementById('continueBtn').style.display = 'none'
+				document.getElementById('restartBtn').style.display = 'none'
+				playerReset()
+				update()
+			}
+
+			document.addEventListener('keydown', event => {
+				if (gameEnded) return
+				if (event.key === 'ArrowLeft') {
+					playerMove(-1)
+				} else if (event.key === 'ArrowRight') {
+					playerMove(1)
+				} else if (event.key === 'ArrowDown') {
+					playerDrop()
+				} else if (event.key === 'ArrowUp') {
+					playerRotate(1)
+				}
+			})
+
+			let gameEnded = false
+			playerReset()
+			updateScore()
+			update()
+		</script>
+	</body>
+</html>

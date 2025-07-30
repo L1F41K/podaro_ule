@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta charset="UTF-8" />
+		<title>Мини-лабиринт</title>
+		<style>
+			body {
+				font-family: sans-serif;
+				text-align: center;
+				background-color: #f0f0f0;
+				padding: 10px;
+			}
+
+			.grid {
+				display: grid;
+				grid-template-columns: repeat(10, 1fr);
+				grid-template-rows: repeat(10, 1fr);
+				gap: 2px;
+				width: 90vmin;
+				height: 90vmin;
+				margin: 0 auto 20px;
+			}
+
+			.cell {
+				background-color: #fff;
+				border: 1px solid #ccc;
+				font-size: 5vmin;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			.wall {
+				background-color: #333;
+			}
+
+			.joystick {
+				display: grid;
+				grid-template-columns: 60px 60px 60px;
+				grid-template-rows: 60px 60px 60px;
+				gap: 10px;
+				justify-content: center;
+				margin: 20px auto;
+			}
+
+			.joy-btn {
+				font-size: 24px;
+				padding: 10px;
+				background-color: #ff8c9d;
+				color: white;
+				border: none;
+				border-radius: 8px;
+				cursor: pointer;
+			}
+
+			.joy-btn:active {
+				background-color: #ff6b81;
+			}
+
+			#nextBtn {
+				display: none;
+				margin-top: 20px;
+				padding: 10px 20px;
+				background-color: #4caf50;
+				color: white;
+				border: none;
+				font-size: 18px;
+				border-radius: 8px;
+				cursor: pointer;
+			}
+		</style>
+	</head>
+	<body>
+		<h2>Дойди до подарка! 🎁</h2>
+
+		<div class="grid" id="grid"></div>
+
+		<div class="joystick">
+			<div></div>
+			<button class="joy-btn" onclick="move('up')">⬆</button>
+			<div></div>
+			<button class="joy-btn" onclick="move('left')">⬅</button>
+			<div></div>
+			<button class="joy-btn" onclick="move('right')">➡</button>
+			<div></div>
+			<button class="joy-btn" onclick="move('down')">⬇</button>
+			<div></div>
+		</div>
+
+		<button id="nextBtn" onclick="window.location.href='guess-num.html'">
+			Продолжить 🎉
+		</button>
+		<script>
+			const gridSize = 10
+			let playerPos = { x: 3, y: 0 }
+			const giftPos = { x: 6, y: 9 }
+
+			const path = new Set([
+				// строка 0
+				'0-0',
+				'1-0',
+				'3-0',
+				'6-0',
+				'7-0',
+				'8-0',
+				// строка 1
+				'0-1',
+				'2-1',
+				'3-1',
+				'5-1',
+				'6-1',
+				'8-1',
+				'9-1',
+				// строка 2
+				'0-2',
+				'1-2',
+				'2-2',
+				'6-2',
+				'7-2',
+				'9-2',
+				// строка 3
+				'0-3',
+				'2-3',
+				'3-3',
+				'5-3',
+				'6-3',
+				'8-3',
+				'9-3',
+				// строка 4
+				'0-4',
+				'1-4',
+				'3-4',
+				'4-4',
+				'5-4',
+				'8-4',
+				// строка 5
+				'0-5',
+				'2-5',
+				'4-5',
+				'6-5',
+				'7-5',
+				'8-5',
+				'9-5',
+				// строка 6
+				'0-6',
+				'1-6',
+				'2-6',
+				'3-6',
+				'5-6',
+				'6-6',
+				'9-6',
+				// строка 7
+				'2-7',
+
+				'5-7',
+				'7-7',
+				'8-7',
+				'9-7',
+				// строка 8
+				'0-8',
+				'2-8',
+				'3-8',
+				'4-8',
+				'6-8',
+				'8-8',
+				// строка 9
+				'0-9',
+				'1-9',
+				'2-9',
+				'6-9',
+				'7-9',
+				'8-9',
+			])
+
+			function isWall(x, y) {
+				return !path.has(`${x}-${y}`)
+			}
+
+			function createGrid() {
+				const grid = document.getElementById('grid')
+				grid.innerHTML = ''
+
+				for (let y = 0; y < gridSize; y++) {
+					for (let x = 0; x < gridSize; x++) {
+						const cell = document.createElement('div')
+						cell.classList.add('cell')
+
+						if (isWall(x, y)) {
+							cell.classList.add('wall')
+						} else if (playerPos.x === x && playerPos.y === y) {
+							cell.textContent = '🧍'
+						} else if (giftPos.x === x && giftPos.y === y) {
+							cell.textContent = '🎁'
+						}
+
+						grid.appendChild(cell)
+					}
+				}
+			}
+
+			function move(direction) {
+				const next = { ...playerPos }
+				if (direction === 'up') next.y--
+				if (direction === 'down') next.y++
+				if (direction === 'left') next.x--
+				if (direction === 'right') next.x++
+
+				if (
+					next.x >= 0 &&
+					next.x < gridSize &&
+					next.y >= 0 &&
+					next.y < gridSize &&
+					!isWall(next.x, next.y)
+				) {
+					playerPos = next
+					createGrid()
+					checkWin()
+				}
+			}
+
+			function checkWin() {
+				if (playerPos.x === giftPos.x && playerPos.y === giftPos.y) {
+					document.getElementById('nextBtn').style.display = 'inline-block'
+					alert('Ты нашла подарок! 🎁🥳')
+				}
+			}
+
+			createGrid()
+		</script>
+	</body>
+</html>

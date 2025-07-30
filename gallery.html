@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="ru">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Фотогалерея-поздравление</title>
+		<style>
+			body {
+				margin: 0;
+				padding: 0;
+				font-family: sans-serif;
+				background: #ffd9d9;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				min-height: 100vh;
+			}
+
+			main {
+				text-align: center;
+				padding: 20px;
+				background: #fdeded;
+				border-radius: 10px;
+				box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+				max-width: 500px;
+				width: 90%;
+			}
+
+			img {
+				width: 100%;
+				height: auto;
+				border-radius: 10px;
+				margin-bottom: 15px;
+			}
+
+			p {
+				font-size: 18px;
+				color: #333;
+				margin-bottom: 20px;
+			}
+
+			button {
+				padding: 10px 25px;
+				font-size: 16px;
+				background-color: #ff4081;
+				color: white;
+				border: none;
+				border-radius: 5px;
+				cursor: pointer;
+				transition: background-color 0.3s;
+			}
+
+			button:hover {
+				background-color: #e73370;
+			}
+		</style>
+	</head>
+	<body>
+		<main>
+			<img id="random-image" src="" alt="Поздравление" />
+			<p id="random-text"></p>
+			<button onclick="showRandom()">Продолжить</button>
+		</main>
+
+		<script>
+			const images = [
+				'assets/images/photo1.jpg',
+				'assets/images/photo2.jpg',
+				'assets/images/photo3.jpg',
+				'assets/images/photo4.jpg',
+				'assets/images/photo5.jpg',
+				'assets/images/photo6.jpg',
+				'assets/images/photo7.jpg',
+				'assets/images/photo8.jpg',
+				'assets/images/photo9.jpg',
+				'assets/images/photo10.jpg',
+				'assets/images/photo11.jpg',
+				'assets/images/photo12.jpg',
+				'assets/images/photo13.jpg',
+				'assets/images/photo14.jpg',
+				'assets/images/photo15.jpg',
+				'assets/images/photo16.jpg',
+				'assets/images/photo17.jpg',
+				'assets/images/photo18.jpg',
+				'assets/images/photo19.jpg',
+				'assets/images/photo20.jpg',
+				'assets/images/photo21.jpg',
+				'assets/images/photo22.jpg',
+				'assets/images/photo23.jpg',
+				'assets/images/photo24.jpg',
+				'assets/images/photo25.jpg',
+				'assets/images/photo26.jpg',
+				'assets/images/photo27.jpg',
+				'assets/images/photo28.jpg',
+				'assets/images/photo29.jpg',
+				'assets/images/photo30.jpg',
+				'assets/images/photo31.jpg',
+				'assets/images/photo32.jpg',
+				'assets/images/photo33.jpg',
+				'assets/images/photo34.jpg',
+				'assets/images/photo35.jpg',
+				'assets/images/photo36.jpg',
+				'assets/images/photo37.jpg',
+				'assets/images/photo38.jpg',
+				'assets/images/photo39.jpg',
+				'assets/images/photo40.jpg',
+				'assets/images/photo41.jpg',
+				'assets/images/photo42.jpg',
+				'assets/images/photo43.jpg',
+				'assets/images/photo44.jpg',
+				'assets/images/photo45.jpg',
+				'assets/images/photo46.jpg',
+				'assets/images/photo47.jpg',
+				'assets/images/photo48.jpg',
+				'assets/images/photo49.jpg',
+				'assets/images/photo50.jpg',
+				'assets/images/photo51.jpg',
+				'assets/images/photo52.jpg',
+				'assets/images/photo53.jpg',
+				'assets/images/photo54.jpg',
+				'assets/images/photo55.jpg',
+				'assets/images/photo56.jpg',
+				'assets/images/photo57.jpg',
+				'assets/images/photo58.jpg',
+				'assets/images/photo59.jpg',
+				'assets/images/photo60.jpg',
+				'assets/images/photo61.jpg',
+				'assets/images/photo62.jpg',
+				'assets/images/photo63.jpg',
+				'assets/images/photo64.jpg',
+				'assets/images/photo65.jpg',
+				'assets/images/photo66.jpg',
+				'assets/images/photo67.jpg',
+				'assets/images/photo68.jpg',
+				'assets/images/photo69.jpg',
+				'assets/images/photo70.jpg',
+				'assets/images/photo71.jpg',
+				'assets/images/photo72.jpg',
+				'assets/images/photo73.jpg',
+				'assets/images/photo74.jpg',
+				'assets/images/photo75.jpg',
+				'assets/images/photo76.jpg',
+			]
+
+			const texts = [
+				'Ты самая добрая и светлая, люблю тебя!',
+				'Пусть сбудется всё, о чём ты мечтаешь!',
+				'Оставайся такой же весёлой и неповторимой!',
+				'Ты делаешь этот мир ярче одним только присутствием!',
+				'Твоя улыбка — мой главный источник вдохновения!',
+				'Ты невероятно талантливая и красивая!',
+				'С тобой каждый день становится праздником!',
+				'Ты — чудо, которое случилось в моей жизни!',
+				'Пусть жизнь приносит тебе только радость и любовь!',
+				'Ты умеешь согревать сердца своей добротой!',
+				'Я благодарен судьбе за то, что ты есть!',
+				'Ты — источник света, тепла и счастья!',
+				'Пусть каждый твой день будет наполнен магией!',
+				'Ты умеешь быть сильной и нежной одновременно!',
+				'Твоя энергия вдохновляет и окрыляет!',
+				'Ты всегда знаешь, как поддержать и подарить тепло!',
+				'Ты заслуживаешь только самого лучшего!',
+				'Ты удивительная, неповторимая, настоящая!',
+				'Пусть твоя душа поёт от счастья!',
+				'Ты умеешь превращать обычные моменты в сказку!',
+				'С тобой всё становится возможным!',
+				'Ты даришь любовь просто так — и это чудо!',
+				'Спасибо за твою доброту, нежность и свет!',
+				'Ты — самое доброе и светлое создание на этой планете, обожаю тебя!',
+				'Пусть каждая твоя мечта исполнится, как по волшебству!',
+				'Оставайся такой же лучезарной, жизнерадостной и уникальной!',
+				'Твоё присутствие делает любой день в разы прекраснее!',
+				'Твоя улыбка — как луч солнца в пасмурный день!',
+				'Ты сочетаешь в себе столько талантов и красоты — это восхищает!',
+				'С тобой даже обычный вечер превращается в праздник!',
+				'Ты — самое настоящее чудо, подаренное мне судьбой!',
+				'Пусть твоя жизнь будет наполнена только счастьем и любовью!',
+				'Ты умеешь согревать душу одним только словом!',
+				'Я бесконечно благодарен вселенной за то, что ты в моей жизни!',
+				'Ты — воплощение тепла, света и нежности!',
+				'Пусть каждый твой день будет наполнен волшебством и радостью!',
+				'Ты умеешь быть одновременно сильной, как скала, и нежной, как весенний ветерок!',
+				'Твоя энергия заряжает позитивом всех вокруг!',
+				'Ты всегда знаешь, как поддержать и подарить ощущение дома!',
+				'Ты заслуживаешь всего самого прекрасного, что есть в этом мире!',
+				'Ты — удивительное, неповторимое и самое настоящее чудо!',
+				'Пусть твоя душа всегда поёт от счастья!',
+				'Ты умеешь превращать даже рутину в сказочные моменты!',
+				'С тобой я верю, что невозможного — не существует!',
+				'Ты даришь любовь так легко и естественно — это бесценно!',
+				'Спасибо тебе за твою безграничную доброту и свет, который ты несёшь!',
+			]
+
+			function showRandom() {
+				const img = document.getElementById('random-image')
+				const txt = document.getElementById('random-text')
+
+				const randomImg = images[Math.floor(Math.random() * images.length)]
+				const randomText = texts[Math.floor(Math.random() * texts.length)]
+
+				img.src = randomImg
+				txt.textContent = randomText
+			}
+
+			// Показать что-то при первой загрузке
+			window.onload = showRandom
+		</script>
+	</body>
+</html>
